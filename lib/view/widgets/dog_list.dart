@@ -20,36 +20,43 @@ class DogList extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView.separated(
+        return ListView.builder(
           itemCount: snapshot.data.length,
           itemBuilder: (context, i) {
-            return Slidable(
-              actionPane: SlidableStrechActionPane(),
-              actionExtentRatio: 0.25,
-              child: ListTile(
-                title: Text(snapshot.data[i].name),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => UpdateDogDialog(
-                      provider,
-                      snapshot.data[i],
-                    ),
-                  );
-                },
-              ),
-              actions: <Widget>[
-                IconSlideAction(
-                  icon: Icons.delete,
-                  color: Theme.of(context).errorColor,
-                  onTap: () {
-                    provider.deleteDog(snapshot.data[i].id);
-                  },
+            return Column(
+              children: <Widget>[
+                Slidable(
+                  actionPane: SlidableStrechActionPane(),
+                  actionExtentRatio: 0.25,
+                  child: ListTile(
+                    title: Text(snapshot.data[i].name),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => UpdateDogDialog(
+                          provider,
+                          snapshot.data[i],
+                        ),
+                      );
+                    },
+                  ),
+                  actions: <Widget>[
+                    IconSlideAction(
+                      icon: Icons.delete,
+                      color: Theme.of(context).errorColor,
+                      onTap: () {
+                        provider.deleteDog(snapshot.data[i].id);
+                      },
+                    )
+                  ],
+                ),
+                Container(
+                  color: Colors.black.withOpacity(0.05),
+                  height: 1,
                 )
               ],
             );
           },
-          separatorBuilder: (BuildContext context, int index) => Divider(),
         );
       },
     );
