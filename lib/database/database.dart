@@ -1,6 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqlite_test/models/dog.dart';
+import 'package:sqlite_test/models/toy.dart';
 
 class MyDatabase {
   Database _database;
@@ -14,9 +15,18 @@ class MyDatabase {
   Future<Database> getDatabaseInstance() async {
     final directory = await getDatabasesPath();
     String path = join(directory, "dog.db");
+
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        await db.execute(
+          "ALTER TABLE dogs RENAME TO dog",
+        );
+        await db.execute(
+          "CREATE TABLE toy(id INTEGER PRIMARY KEY, toytype TEXT, dogid INTEGER, FOREIGN KEY(dogid) REFERENCES dog(id))",
+        );
+      },
       onCreate: (Database db, int version) async {
         await db.execute(
           "CREATE TABLE dogs(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)",
@@ -25,16 +35,29 @@ class MyDatabase {
     );
   }
 
-
   Future<List<Dog>> dogs() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('dogs');
-
-    return List.generate(maps.length, (i) {
+    //get dogs and join onto toys table
+    final List<Map<String, dynamic>> dogMaps = await db.rawQuery(
+      'SELECT dog.id, dog.name, dog.age, toy.toytype FROM dog LEFT JOIN toy ON dog.id = toy.dogid',
+    );
+    //get all toys
+    final List<Map<String, dynamic>> toyMaps =
+        await db.rawQuery('SELECT * FROM toy');
+    //generate list of toys to use in our dog list
+    final toyList = List.generate(toyMaps.length, (i) {
+      return Toy(
+          id: toyMaps[i]['id'],
+          toyType: toyMaps[i]['toytype'],
+          dogId: toyMaps[i]['dogid']);
+    });
+    //return list of dogs with their associated toys
+    return List.generate(dogMaps.length, (i) {
       return Dog(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        age: maps[i]['age'],
+        id: dogMaps[i]['id'],
+        name: dogMaps[i]['name'],
+        age: dogMaps[i]['age'],
+        toys: toyList.where((toy) => toy.dogId == dogMaps[i]['id']).toList(),
       );
     });
   }
@@ -45,7 +68,7 @@ class MyDatabase {
     // `conflictAlgorithm`. In this case, if the same dog is inserted
     // multiple times, it replaces the previous data.
     await db.insert(
-      'dogs',
+      'dog',
       dog.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -54,7 +77,7 @@ class MyDatabase {
   Future<void> updateDog(Dog dog) async {
     final db = await database;
     await db.update(
-      'dogs',
+      'dog',
       dog.toMap(),
       where: "id = ?",
       // Pass the Dog's id as a whereArg to prevent SQL injection.
@@ -65,7 +88,7 @@ class MyDatabase {
   Future<void> deleteDog(int id) async {
     final db = await database;
     await db.delete(
-      'dogs',
+      'dog',
       where: "id = ?",
       whereArgs: [id],
     );
