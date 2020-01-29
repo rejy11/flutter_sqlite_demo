@@ -17,19 +17,13 @@ class MyDatabase {
     final directory = await getDatabasesPath();
     String path = join(directory, "dog.db");
 
-    deleteDatabase(path);
+    //deleteDatabase(path);
 
     return await openDatabase(
       path,
       version: 1,
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
         debugPrint('Database OnUpgrade');
-        // await db.execute(
-        //   "ALTER TABLE dogs RENAME TO dog",
-        // );
-        // await db.execute(
-        //   "CREATE TABLE toy(id INTEGER PRIMARY KEY, toytype TEXT, dogid INTEGER, FOREIGN KEY(dogid) REFERENCES dog(id))",
-        // );
       },
       onCreate: (Database db, int version) async {
         debugPrint('Database OnCreate');
@@ -45,19 +39,18 @@ class MyDatabase {
 
   Future<List<Dog>> dogs() async {
     final db = await database;
+
     //get dogs and join onto toys table
-    final List<Map<String, dynamic>> dogMaps = await db.rawQuery(
-      'SELECT dog.id, dog.name, dog.age, toy.toytype FROM dog LEFT JOIN toy ON dog.id = toy.dogid',
-    );
+    final List<Map<String, dynamic>> dogMaps = await db.query('dog');
     //get all toys
-    final List<Map<String, dynamic>> toyMaps =
-        await db.rawQuery('SELECT * FROM toy');
+    final List<Map<String, dynamic>> toyMaps = await db.query('toy');
     //generate list of toys to use in our dog list
     final toyList = List.generate(toyMaps.length, (i) {
       return Toy(
-          id: toyMaps[i]['id'],
-          toyType: toyMaps[i]['toytype'],
-          dogId: toyMaps[i]['dogid']);
+        id: toyMaps[i]['id'],
+        toyType: toyMaps[i]['toytype'],
+        dogId: toyMaps[i]['dogid'],
+      );
     });
     //return list of dogs with their associated toys
     return List.generate(dogMaps.length, (i) {
@@ -88,7 +81,7 @@ class MyDatabase {
       dog.toMap(),
       where: "id = ?",
       // Pass the Dog's id as a whereArg to prevent SQL injection.
-      whereArgs: [dog.id], 
+      whereArgs: [dog.id],
     );
   }
 
@@ -97,16 +90,14 @@ class MyDatabase {
 
     final db = await database;
 
-    for (var toy in dog.toys) {
-      await db.insert(
-        'toy',
-        {
-          'id': toy.id,
-          'toytype': toy.toyType,
-          'dogid': toy.dogId,
-        },
-      );
-    }
+    await db.insert(
+      'toy',
+      {
+        'id': toy.id,
+        'toytype': toy.toyType,
+        'dogid': toy.dogId,
+      },
+    );
   }
 
   Future<void> deleteDog(int id) async {
