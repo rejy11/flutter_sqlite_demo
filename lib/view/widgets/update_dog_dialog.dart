@@ -18,6 +18,7 @@ class UpdateDogDialog extends StatefulWidget {
 class _UpdateDogDialogState extends State<UpdateDogDialog> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _ageController = TextEditingController();
+  TextEditingController _toyController = TextEditingController();
 
   @override
   void initState() {
@@ -27,21 +28,60 @@ class _UpdateDogDialogState extends State<UpdateDogDialog> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _toyController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Dog'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          TextField(
-            decoration: InputDecoration(helperText: 'Name'),
-            controller: _nameController,
-          ),
-          TextField(
-            decoration: InputDecoration(helperText: 'Age'),
-            controller: _ageController,
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(helperText: 'Name'),
+              controller: _nameController,
+            ),
+            TextField(
+              decoration: InputDecoration(helperText: 'Age'),
+              controller: _ageController,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: TextField(
+                controller: _toyController,
+                onChanged: (text) {
+                  if (text.isNotEmpty) {
+                    setState(() {});
+                  }
+                },
+                decoration: InputDecoration(
+                  helperText: 'Toy Type',
+                  hintText: 'e.g tennis ball',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add),
+                    color: Theme.of(context).accentColor,
+                    onPressed: _toyController.text.isNotEmpty
+                        ? () {
+                            widget.provider.addToyToDog(
+                              widget.dogModel.id,
+                              _toyController.text,
+                            );
+                            //fixes issue with clear text https://github.com/flutter/flutter/issues/35848
+                            WidgetsBinding.instance.addPostFrameCallback( (_) => _toyController.clear());
+                          }
+                        : null,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
       actions: <Widget>[
         FlatButton(
@@ -53,20 +93,9 @@ class _UpdateDogDialogState extends State<UpdateDogDialog> {
           onPressed: () {
             if (_nameController.text.isNotEmpty &&
                 _ageController.text.isNotEmpty) {
-              final name = _nameController.text;
-              final age = int.tryParse(_ageController.text);
-              if (age != null) {
-                if (age >= 0) {
-                  final updatedDog = Dog(
-                    id: widget.dogModel.id,
-                    name: name,
-                    age: age,
-                  );
-
-                  widget.provider.updateDog(updatedDog);
-                  Navigator.pop(context);
-                }
-              }
+              widget.provider.updateDog(widget.dogModel.id,
+                  _nameController.text, _ageController.text);
+              Navigator.pop(context);
             }
           },
         ),

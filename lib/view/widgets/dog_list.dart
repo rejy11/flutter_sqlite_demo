@@ -30,6 +30,9 @@ class DogList extends StatelessWidget {
                   actionExtentRatio: 0.25,
                   child: ListTile(
                     title: Text(snapshot.data[i].name),
+                    subtitle: snapshot.data[i].toys.length != 1
+                        ? Text('${snapshot.data[i].toys.length} toys')
+                        : Text('${snapshot.data[i].toys.length} toy'),
                     onTap: () {
                       showDialog(
                         context: context,

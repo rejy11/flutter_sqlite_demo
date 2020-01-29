@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqlite_test/models/dog.dart';
@@ -16,20 +17,27 @@ class MyDatabase {
     final directory = await getDatabasesPath();
     String path = join(directory, "dog.db");
 
+    deleteDatabase(path);
+
     return await openDatabase(
       path,
-      version: 3,
+      version: 1,
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        await db.execute(
-          "ALTER TABLE dogs RENAME TO dog",
-        );
-        await db.execute(
-          "CREATE TABLE toy(id INTEGER PRIMARY KEY, toytype TEXT, dogid INTEGER, FOREIGN KEY(dogid) REFERENCES dog(id))",
-        );
+        debugPrint('Database OnUpgrade');
+        // await db.execute(
+        //   "ALTER TABLE dogs RENAME TO dog",
+        // );
+        // await db.execute(
+        //   "CREATE TABLE toy(id INTEGER PRIMARY KEY, toytype TEXT, dogid INTEGER, FOREIGN KEY(dogid) REFERENCES dog(id))",
+        // );
       },
       onCreate: (Database db, int version) async {
+        debugPrint('Database OnCreate');
         await db.execute(
-          "CREATE TABLE dogs(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)",
+          "CREATE TABLE dog(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)",
+        );
+        await db.execute(
+          "CREATE TABLE toy(id INTEGER PRIMARY KEY AUTOINCREMENT, toytype TEXT, dogid INTEGER, FOREIGN KEY(dogid) REFERENCES dog(id) ON DELETE CASCADE)",
         );
       },
     );
@@ -70,7 +78,6 @@ class MyDatabase {
     await db.insert(
       'dog',
       dog.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -81,8 +88,25 @@ class MyDatabase {
       dog.toMap(),
       where: "id = ?",
       // Pass the Dog's id as a whereArg to prevent SQL injection.
-      whereArgs: [dog.id],
+      whereArgs: [dog.id], 
     );
+  }
+
+  Future<void> insertToy(Toy toy, Dog dog) async {
+    debugPrint(toy.toString());
+
+    final db = await database;
+
+    for (var toy in dog.toys) {
+      await db.insert(
+        'toy',
+        {
+          'id': toy.id,
+          'toytype': toy.toyType,
+          'dogid': toy.dogId,
+        },
+      );
+    }
   }
 
   Future<void> deleteDog(int id) async {

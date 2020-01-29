@@ -16,21 +16,37 @@ class _NewDogDialogState extends State<NewDogDialog> {
 
   @override
   Widget build(BuildContext context) {
-
     return AlertDialog(
       title: const Text('Add Dog'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          TextField(
-            decoration: InputDecoration(helperText: 'Name'),
-            controller: _nameController,
-          ),
-          TextField(
-            decoration: InputDecoration(helperText: 'Age'),
-            controller: _ageController,
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(helperText: 'Name'),
+              controller: _nameController,
+            ),
+            TextField(
+              decoration: InputDecoration(helperText: 'Age'),
+              controller: _ageController,
+            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(top: 15),
+            //   child: TextField(
+            //     decoration: InputDecoration(
+            //       helperText: 'Toy Type',
+            //       hintText: 'e.g tennis ball',
+            //       suffixIcon: IconButton(
+            //         icon: Icon(Icons.add),
+            //         onPressed: () {
+            //           //add toy
+            //         },
+            //       ),
+            //     ),
+            //   ),
+            // )
+          ],
+        ),
       ),
       actions: <Widget>[
         FlatButton(

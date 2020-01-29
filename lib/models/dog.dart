@@ -13,12 +13,17 @@ class Dog {
     this.toys,
   });
 
+  //this logic should be moved to the database level as it is only needed for that
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'age': age,
-      'toys': toys,
     };
+  }
+
+  @override
+  String toString() {
+    return 'DOG => id: $id, name: $name, age: $age, toys: $toys';
   }
 }

@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Sqlite Demo',
       theme: ThemeData(
-        primarySwatch: Colors.brown,
+        primarySwatch: Colors.purple,
         accentColor: Colors.lightBlue[200]
       ),
       home: ChangeNotifierProvider(

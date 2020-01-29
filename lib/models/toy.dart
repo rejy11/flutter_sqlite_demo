@@ -8,4 +8,9 @@ class Toy {
     this.toyType,
     this.dogId,
   });
+
+  @override
+  String toString() {
+    return 'TOY => id: $id, toyType: $toyType, dogId: $dogId';
+  }
 }
